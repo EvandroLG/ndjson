@@ -24,6 +24,11 @@ func TestMarshal(t *testing.T) {
 		{name: "map", input: map[string]int{"a": 1, "b": 2}, expect: []any{map[string]int{"a": 1, "b": 2}}},
 		{name: "slice", input: []int{1, 2, 3}, expect: []any{1, 2, 3}},
 		{name: "array", input: [2]string{"a", "b"}, expect: []any{"a", "b"}},
+		{
+			name:   "raw message",
+			input:  json.RawMessage(`{"a":1}`),
+			expect: []any{json.RawMessage(`{"a":1}`)},
+		},
 	}
 
 	for _, tt := range tests {
@@ -57,7 +62,7 @@ func TestMarshalError(t *testing.T) {
 	if err == nil {
 		t.Fatalf("Marshal(chan int) expected error, got nil")
 	}
-	if data != nil && len(data) != 0 {
+	if len(data) != 0 {
 		t.Fatalf("Marshal(chan int) returned data, want empty: %q", string(data))
 	}
 }
