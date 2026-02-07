@@ -20,7 +20,6 @@
 //     single JSON value (not split into lines).
 //
 // Unmarshal decodes NDJSON into a destination. The destination must be a
-// pointer to a slice (values are appended) or a send-capable channel (values are
-// sent on the channel). Empty lines are ignored, and JSON decode errors include
-// the line number.
+// pointer to a slice (values are appended). Empty lines are ignored, and
+// JSON decode errors include the line number.
 package ndjson
