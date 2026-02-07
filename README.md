@@ -1,8 +1,8 @@
-# ndjson
+# ndjson &middot;[![CI](https://github.com/evandrolg/ndjson/actions/workflows/ci.yml/badge.svg)](https://github.com/evandrolg/ndjson/actions/workflows/ci.yml) [![Go Reference](https://pkg.go.dev/badge/github.com/evandrolg/ndjson.svg)](https://pkg.go.dev/github.com/evandrolg/ndjson) [![Go Report Card](https://goreportcard.com/badge/github.com/evandrolg/ndjson)](https://goreportcard.com/report/github.com/evandrolg/ndjson) [![License](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 
 A Go package for encoding and decoding Newline Delimited JSON (NDJSON).
 
-> **Note:** This package is currently a stub. `Marshal` and `Unmarshal` return `ErrNotImplemented`.
+Marshal encodes values to NDJSON and Unmarshal decodes NDJSON into a slice.
 
 ## Installation
 
@@ -17,29 +17,31 @@ package main
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/evandrolg/ndjson"
 )
 
 func main() {
-	// Marshal (not yet implemented)
-	data, err := ndjson.Marshal(map[string]string{"hello": "world"})
+	data, err := ndjson.Marshal([]map[string]any{
+		{"name": "Alice"},
+		{"name": "Bob"},
+	})
 	if err != nil {
-		log.Printf("Marshal error: %v", err) // ndjson: not implemented
+		fmt.Errorf("Marshal error: %v\n", err)
+		return
 	}
 
-	// Unmarshal (not yet implemented)
 	var results []map[string]any
-	err = ndjson.Unmarshal([]byte(`{"a":1}\n{"b":2}`), &results)
+	err = ndjson.Unmarshal(data, &results)
 	if err != nil {
-		log.Printf("Unmarshal error: %v", err) // ndjson: not implemented
+		fmt.Errorf("Unmarshal error: %v\n", err)
+		return
 	}
 
-	fmt.Println(data) // nil
+	fmt.Println(results)
 }
 ```
 
 ## License
 
-MIT
+[MIT](./LICENSE)
