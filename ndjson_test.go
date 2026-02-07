@@ -1,37 +1,96 @@
 package ndjson
 
 import (
-	"errors"
+	"bytes"
+	"encoding/json"
 	"reflect"
 	"testing"
 )
 
 func TestMarshal(t *testing.T) {
+	type testStruct struct {
+		Name string `json:"name"`
+	}
+
 	tests := []struct {
-		name  string
-		input any
+		name   string
+		input  any
+		expect []any
 	}{
-		{name: "nil value", input: nil},
-		{name: "string", input: "hello"},
-		{name: "int", input: 42},
-		{name: "struct", input: struct{ Name string }{Name: "test"}},
-		{name: "map", input: map[string]int{"a": 1, "b": 2}},
-		{name: "slice", input: []int{1, 2, 3}},
+		{name: "nil value", input: nil, expect: []any{nil}},
+		{name: "string", input: "hello", expect: []any{"hello"}},
+		{name: "int", input: 42, expect: []any{42}},
+		{name: "struct", input: testStruct{Name: "test"}, expect: []any{testStruct{Name: "test"}}},
+		{name: "map", input: map[string]int{"a": 1, "b": 2}, expect: []any{map[string]int{"a": 1, "b": 2}}},
+		{name: "slice", input: []int{1, 2, 3}, expect: []any{1, 2, 3}},
+		{name: "array", input: [2]string{"a", "b"}, expect: []any{"a", "b"}},
+		{
+			name:   "raw message",
+			input:  json.RawMessage(`{"a":1}`),
+			expect: []any{json.RawMessage(`{"a":1}`)},
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			data, err := Marshal(tt.input)
-
-			if data != nil {
-				t.Errorf("Marshal(%v) returned data = %v, want nil", tt.input, data)
+			if err != nil {
+				t.Fatalf("Marshal(%v) unexpected error: %v", tt.input, err)
+			}
+			if len(data) == 0 || data[len(data)-1] != '\n' {
+				t.Fatalf("Marshal(%v) missing trailing newline: %q", tt.input, string(data))
 			}
 
-			if !errors.Is(err, ErrNotImplemented) {
-				t.Errorf("Marshal(%v) returned err = %v, want ErrNotImplemented", tt.input, err)
+			lines := splitNDJSONLines(data)
+			if len(lines) != len(tt.expect) {
+				t.Fatalf("Marshal(%v) lines = %d, want %d", tt.input, len(lines), len(tt.expect))
+			}
+
+			for i, line := range lines {
+				got := decodeAnyJSON(t, line)
+				want := normalizeAnyJSON(t, tt.expect[i])
+				if !reflect.DeepEqual(got, want) {
+					t.Fatalf("Marshal(%v) line %d = %v, want %v", tt.input, i, got, want)
+				}
 			}
 		})
 	}
+}
+
+func TestMarshalError(t *testing.T) {
+	data, err := Marshal(make(chan int))
+	if err == nil {
+		t.Fatalf("Marshal(chan int) expected error, got nil")
+	}
+	if len(data) != 0 {
+		t.Fatalf("Marshal(chan int) returned data, want empty: %q", string(data))
+	}
+}
+
+func splitNDJSONLines(data []byte) [][]byte {
+	lines := bytes.Split(data, []byte("\n"))
+	if len(lines) > 0 && len(lines[len(lines)-1]) == 0 {
+		lines = lines[:len(lines)-1]
+	}
+	return lines
+}
+
+func decodeAnyJSON(t *testing.T, data []byte) any {
+	t.Helper()
+	var out any
+	if err := json.Unmarshal(data, &out); err != nil {
+		t.Fatalf("json.Unmarshal failed: %v", err)
+	}
+	return out
+}
+
+func normalizeAnyJSON(t *testing.T, v any) any {
+	t.Helper()
+	b, err := json.Marshal(v)
+	if err != nil {
+		t.Fatalf("json.Marshal failed: %v", err)
+	}
+	return decodeAnyJSON(t, b)
 }
 
 func TestUnmarshal(t *testing.T) {
