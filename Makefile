@@ -1,4 +1,4 @@
-.PHONY: test tidy fmt
+.PHONY: test tidy fmt lint
 
 test:
 	go test -v ./...
@@ -8,3 +8,6 @@ tidy:
 
 fmt:
 	go fmt ./...
+
+lint:
+	go vet ./...
