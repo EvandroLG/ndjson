@@ -64,7 +64,7 @@ func Marshal(v any) ([]byte, error) {
 // Unmarshal decodes NDJSON data into v.
 //
 // The data parameter should contain one or more newline-delimited JSON objects.
-// The v parameter must be a pointer to a slice or other suitable container
+// The v parameter must be a pointer to a slice
 // that can hold the decoded values.
 func Unmarshal(data []byte, v any) error {
 	fragments := bytes.Split(data, []byte("\n"))
