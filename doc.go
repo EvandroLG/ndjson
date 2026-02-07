@@ -13,6 +13,14 @@
 // This package provides Marshal and Unmarshal functions similar to encoding/json,
 // but designed for the NDJSON format.
 //
-// Note: This package is currently a stub. Marshal and Unmarshal return
-// ErrNotImplemented until the implementation is complete.
+// Marshal encodes values as NDJSON:
+//   - Slices and arrays are encoded one element per line.
+//   - Other values are encoded as a single JSON value with a trailing newline.
+//   - Values implementing json.Marshaler and byte slices/arrays are encoded as a
+//     single JSON value (not split into lines).
+//
+// Unmarshal decodes NDJSON into a destination. The destination must be a
+// pointer to a slice (values are appended) or a send-capable channel (values are
+// sent on the channel). Empty lines are ignored, and JSON decode errors include
+// the line number.
 package ndjson
